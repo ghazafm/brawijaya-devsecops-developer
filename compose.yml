@@ -39,7 +39,7 @@ services:
       
       # Database Config
       DB_HOST: postgres
-      DB_PORT: 5432
+      DB_PORT: "${DB_PORT:-5432}"
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       DB_NAME: ${DB_NAME:-task_management}
@@ -54,9 +54,29 @@ services:
     networks:
       - task-management-network
     command: ["./main"]
+  
+  wordpress:
+    image: wordpress:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    environment:
+      WORDPRESS_DB_HOST: "postgres:${DB_PORT:-5432}"
+      WORDPRESS_DB_NAME: "${DB_NAME:-wordpress}"
+      WORDPRESS_DB_USER: "${DB_USER:-postgres}"
+      WORDPRESS_DB_PASSWORD: "${DB_PASSWORD:-postgres}"
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - task-management-network
 
 volumes:
   postgres_data:
+    driver: local
+  wordpress_data:
     driver: local
 
 networks:
