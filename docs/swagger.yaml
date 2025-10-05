@@ -1,0 +1,357 @@
+basePath: /api/v1
+definitions:
+  handlers.AuthResponse:
+    properties:
+      data: {}
+      message:
+        example: Operation successful
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  handlers.CreateTodoRequest:
+    type: object
+  handlers.LoginRequest:
+    properties:
+      password:
+        example: password123
+        type: string
+      username:
+        example: johndoe
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  handlers.RegisterRequest:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      first_name:
+        example: John
+        type: string
+      password:
+        example: password123
+        minLength: 6
+        type: string
+      username:
+        example: johndoe
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  handlers.TodoResponse:
+    properties:
+      data: {}
+      message:
+        example: Operation successful
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  handlers.UpdateTodoRequest:
+    type: object
+  models.Category:
+    enum:
+    - work
+    - personal
+    - shopping
+    - health
+    - other
+    type: string
+    x-enum-varnames:
+    - CategoryWork
+    - CategoryPersonal
+    - CategoryShopping
+    - CategoryHealth
+    - CategoryOther
+  models.Priority:
+    enum:
+    - low
+    - medium
+    - high
+    type: string
+    x-enum-varnames:
+    - PriorityLow
+    - PriorityMedium
+    - PriorityHigh
+  models.Status:
+    enum:
+    - todo
+    - inprogress
+    - done
+    type: string
+    x-enum-varnames:
+    - StatusTodo
+    - StatusInProgress
+    - StatusDone
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: API untuk manajemen task/todo list
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Task Management API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with username and password, returns JWT token
+      parameters:
+      - description: Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful with token
+          schema:
+            $ref: '#/definitions/handlers.AuthResponse'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/handlers.AuthResponse'
+        "422":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/handlers.AuthResponse'
+      summary: User login
+      tags:
+      - Authentication
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with username, email, and password
+      parameters:
+      - description: Register Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User registered successfully
+          schema:
+            $ref: '#/definitions/handlers.AuthResponse'
+        "400":
+          description: Invalid request or user already exists
+          schema:
+            $ref: '#/definitions/handlers.AuthResponse'
+        "422":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/handlers.AuthResponse'
+      summary: Register a new user
+      tags:
+      - Authentication
+  /todos:
+    get:
+      consumes:
+      - application/json
+      description: Get all todos for the authenticated user with optional filters
+      parameters:
+      - description: Filter by status
+        enum:
+        - pending
+        - in_progress
+        - completed
+        in: query
+        name: status
+        type: string
+      - description: Filter by category
+        enum:
+        - personal
+        - work
+        - shopping
+        - health
+        - other
+        in: query
+        name: category
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Todos retrieved successfully
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all todos
+      tags:
+      - Todos
+    post:
+      consumes:
+      - application/json
+      description: Create a new todo item for the authenticated user
+      parameters:
+      - description: Create Todo Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateTodoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Todo created successfully
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+        "422":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new todo
+      tags:
+      - Todos
+  /todos/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a specific todo by ID for the authenticated user
+      parameters:
+      - description: Todo ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Todo deleted successfully
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+        "400":
+          description: Invalid request or todo ID
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a todo
+      tags:
+      - Todos
+    get:
+      consumes:
+      - application/json
+      description: Get a specific todo by ID for the authenticated user
+      parameters:
+      - description: Todo ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Todo retrieved successfully
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+        "400":
+          description: Invalid todo ID
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+        "404":
+          description: Todo not found
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a todo by ID
+      tags:
+      - Todos
+    put:
+      consumes:
+      - application/json
+      description: Update a specific todo by ID for the authenticated user
+      parameters:
+      - description: Todo ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update Todo Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateTodoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Todo updated successfully
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+        "400":
+          description: Invalid request or todo ID
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+        "422":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a todo
+      tags:
+      - Todos
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

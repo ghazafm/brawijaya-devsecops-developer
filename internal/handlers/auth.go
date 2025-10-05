@@ -13,15 +13,21 @@ type AuthHandler struct {
 }
 
 type RegisterRequest struct {
-    Username  string `json:"username" binding:"required"`
-    Email     string `json:"email" binding:"required,email"`
-    Password  string `json:"password" binding:"required,min=6"`
-    FirstName string `json:"first_name"`
+    Username  string `json:"username" binding:"required" example:"johndoe"`
+    Email     string `json:"email" binding:"required,email" example:"john@example.com"`
+    Password  string `json:"password" binding:"required,min=6" example:"password123"`
+    FirstName string `json:"first_name" example:"John"`
 }
 
 type LoginRequest struct {
-    Username string `json:"username" binding:"required"`
-    Password string `json:"password" binding:"required"`
+    Username string `json:"username" binding:"required" example:"johndoe"`
+    Password string `json:"password" binding:"required" example:"password123"`
+}
+
+type AuthResponse struct {
+    Status  string      `json:"status" example:"success"`
+    Message string      `json:"message" example:"Operation successful"`
+    Data    interface{} `json:"data,omitempty"`
 }
 
 func NewAuthHandler(authService services.AuthService) *AuthHandler {
@@ -30,6 +36,17 @@ func NewAuthHandler(authService services.AuthService) *AuthHandler {
     }
 }
 
+// Register godoc
+// @Summary Register a new user
+// @Description Create a new user account with username, email, and password
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "Register Request"
+// @Success 200 {object} AuthResponse "User registered successfully"
+// @Failure 400 {object} AuthResponse "Invalid request or user already exists"
+// @Failure 422 {object} AuthResponse "Validation error"
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
     var req RegisterRequest
     if err := c.ShouldBindJSON(&req); err != nil {
@@ -49,6 +66,17 @@ func (h *AuthHandler) Register(c *gin.Context) {
     })
 }
 
+// Login godoc
+// @Summary User login
+// @Description Authenticate user with username and password, returns JWT token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "Login Request"
+// @Success 200 {object} AuthResponse "Login successful with token"
+// @Failure 401 {object} AuthResponse "Invalid credentials"
+// @Failure 422 {object} AuthResponse "Validation error"
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
     var req LoginRequest
     if err := c.ShouldBindJSON(&req); err != nil {

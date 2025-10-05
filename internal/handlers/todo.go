@@ -15,20 +15,26 @@ type TodoHandler struct {
 }
 
 type CreateTodoRequest struct {
-    Title       string           `json:"title" binding:"required"`
-    Description string           `json:"description"`
-    Priority    models.Priority  `json:"priority"`
-    Category    models.Category  `json:"category"`
-    DueDate     interface{}      `json:"due_date"`
+    Title       string           `json:"title" binding:"required" example:"Buy groceries"`
+    Description string           `json:"description" example:"Need to buy milk, eggs, and bread"`
+    Priority    models.Priority  `json:"priority" enums:"low,medium,high" example:"medium"`
+    Category    models.Category  `json:"category" enums:"personal,work,shopping,health,other" example:"personal"`
+    DueDate     interface{}      `json:"due_date" example:"2024-12-31T23:59:59Z"`
 }
 
 type UpdateTodoRequest struct {
-    Title       string          `json:"title"`
-    Description string          `json:"description"`
-    Priority    models.Priority `json:"priority"`
-    Category    models.Category `json:"category"`
-    Status      models.Status   `json:"status"`
-    DueDate     interface{}     `json:"due_date"`
+    Title       string          `json:"title" example:"Buy groceries"`
+    Description string          `json:"description" example:"Need to buy milk, eggs, and bread"`
+    Priority    models.Priority `json:"priority" enums:"low,medium,high" example:"high"`
+    Category    models.Category `json:"category" enums:"personal,work,shopping,health,other" example:"work"`
+    Status      models.Status   `json:"status" enums:"pending,in_progress,completed" example:"completed"`
+    DueDate     interface{}     `json:"due_date" example:"2024-12-31T23:59:59Z"`
+}
+
+type TodoResponse struct {
+    Status  string      `json:"status" example:"success"`
+    Message string      `json:"message" example:"Operation successful"`
+    Data    interface{} `json:"data,omitempty"`
 }
 
 func NewTodoHandler(todoService services.TodoService) *TodoHandler {
@@ -37,6 +43,19 @@ func NewTodoHandler(todoService services.TodoService) *TodoHandler {
     }
 }
 
+// CreateTodo godoc
+// @Summary Create a new todo
+// @Description Create a new todo item for the authenticated user
+// @Tags Todos
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body CreateTodoRequest true "Create Todo Request"
+// @Success 200 {object} TodoResponse "Todo created successfully"
+// @Failure 400 {object} TodoResponse "Invalid request"
+// @Failure 401 {object} TodoResponse "Unauthorized"
+// @Failure 422 {object} TodoResponse "Validation error"
+// @Router /todos [post]
 func (h *TodoHandler) CreateTodo(c *gin.Context) {
     userID, exists := c.Get("userID")
     if !exists {
@@ -75,6 +94,19 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
     utils.SuccessResponse(c, "Todo created successfully", todo)
 }
 
+// GetTodos godoc
+// @Summary Get all todos
+// @Description Get all todos for the authenticated user with optional filters
+// @Tags Todos
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param status query string false "Filter by status" Enums(pending, in_progress, completed)
+// @Param category query string false "Filter by category" Enums(personal, work, shopping, health, other)
+// @Success 200 {object} TodoResponse "Todos retrieved successfully"
+// @Failure 401 {object} TodoResponse "Unauthorized"
+// @Failure 500 {object} TodoResponse "Internal server error"
+// @Router /todos [get]
 func (h *TodoHandler) GetTodos(c *gin.Context) {
     userID, exists := c.Get("userID")
     if !exists {
@@ -94,6 +126,19 @@ func (h *TodoHandler) GetTodos(c *gin.Context) {
     utils.SuccessResponse(c, "Todos retrieved successfully", todos)
 }
 
+// GetTodo godoc
+// @Summary Get a todo by ID
+// @Description Get a specific todo by ID for the authenticated user
+// @Tags Todos
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Todo ID"
+// @Success 200 {object} TodoResponse "Todo retrieved successfully"
+// @Failure 400 {object} TodoResponse "Invalid todo ID"
+// @Failure 401 {object} TodoResponse "Unauthorized"
+// @Failure 404 {object} TodoResponse "Todo not found"
+// @Router /todos/{id} [get]
 func (h *TodoHandler) GetTodo(c *gin.Context) {
     userID, exists := c.Get("userID")
     if !exists {
@@ -116,6 +161,20 @@ func (h *TodoHandler) GetTodo(c *gin.Context) {
     utils.SuccessResponse(c, "Todo retrieved successfully", todo)
 }
 
+// UpdateTodo godoc
+// @Summary Update a todo
+// @Description Update a specific todo by ID for the authenticated user
+// @Tags Todos
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Todo ID"
+// @Param request body UpdateTodoRequest true "Update Todo Request"
+// @Success 200 {object} TodoResponse "Todo updated successfully"
+// @Failure 400 {object} TodoResponse "Invalid request or todo ID"
+// @Failure 401 {object} TodoResponse "Unauthorized"
+// @Failure 422 {object} TodoResponse "Validation error"
+// @Router /todos/{id} [put]
 func (h *TodoHandler) UpdateTodo(c *gin.Context) {
     userID, exists := c.Get("userID")
     if !exists {
@@ -162,6 +221,18 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
     utils.SuccessResponse(c, "Todo updated successfully", todo)
 }
 
+// DeleteTodo godoc
+// @Summary Delete a todo
+// @Description Delete a specific todo by ID for the authenticated user
+// @Tags Todos
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Todo ID"
+// @Success 200 {object} TodoResponse "Todo deleted successfully"
+// @Failure 400 {object} TodoResponse "Invalid request or todo ID"
+// @Failure 401 {object} TodoResponse "Unauthorized"
+// @Router /todos/{id} [delete]
 func (h *TodoHandler) DeleteTodo(c *gin.Context) {
     userID, exists := c.Get("userID")
     if !exists {

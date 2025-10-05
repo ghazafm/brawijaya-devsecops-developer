@@ -36,9 +36,6 @@ func (s *todoService) CreateTodo(userID uint, title, description string, priorit
         Status:      models.StatusTodo,
     }
     
-    // Handle due date if provided
-    // Implementation depends on your date handling logic
-    
     if err := s.todoRepo.Create(todo); err != nil {
         return nil, errors.New("failed to create todo")
     }
