@@ -24,8 +24,6 @@ services:
   wordpress:
     image: wordpress:latest
     container_name: wordpress-app
-    ports:
-      - "8000:80"
     depends_on:
       mysql:
         condition: service_healthy
