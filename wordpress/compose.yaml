@@ -39,8 +39,8 @@ services:
         if (isset($$_SERVER['HTTP_X_FORWARDED_PROTO']) && $$_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
           $$_SERVER['HTTPS'] = 'on';
         }
-        define('WP_HOME', 'http://${WORDPRESS_DOMAIN:-wordpress-app}');
-        define('WP_SITEURL', 'http://${WORDPRESS_DOMAIN:-wordpress-app}');
+        define('WP_HOME', 'https://${WORDPRESS_DOMAIN:-wordpress-app}');
+        define('WP_SITEURL', 'https://${WORDPRESS_DOMAIN:-wordpress-app}');
     volumes:
       - wordpress_data:/var/www/html
       - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
