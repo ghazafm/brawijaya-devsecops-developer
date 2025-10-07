@@ -1,21 +1,62 @@
 services:
+  # MySQL Database for WordPress
+  mysql:
+    image: mysql:8.0
+    container_name: wordpress-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${WORDPRESS_DB_NAME:-wordpress}
+      MYSQL_USER: ${WORDPRESS_DB_USER:-wordpress}
+      MYSQL_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wordpress}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - wordpress-network
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # WordPress Application
   wordpress:
     image: wordpress:latest
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
+    container_name: wordpress-app
     ports:
       - "8000:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
     environment:
-      WORDPRESS_DB_HOST: "postgres:${DB_PORT:-5432}"
-      WORDPRESS_DB_NAME: "${DB_NAME:-wordpress}"
-      WORDPRESS_DB_USER: "${DB_USER:-postgres}"
-      WORDPRESS_DB_PASSWORD: "${DB_PASSWORD:-postgres}"
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wordpress}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wordpress}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wordpress}
+      WORDPRESS_CONFIG_EXTRA: |
+        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+          $_SERVER['HTTPS'] = 'on';
+        }
+        define('WP_HOME', 'http://${WORDPRESS_DOMAIN:-wordpress-app}');
+        define('WP_SITEURL', 'http://${WORDPRESS_DOMAIN:-wordpress-app}');
     volumes:
       - wordpress_data:/var/www/html
+      - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
     networks:
-      - task-management-network
+      - wordpress-network
+      - proxy
 
-wordpress_data:
-  driver: local
+volumes:
+  wordpress_data:
+    driver: local
+  mysql_data:
+    driver: local
+
+networks:
+  wordpress-network:
+    driver: bridge
+  proxy:
+    external: true
+    name: proxy

@@ -1,0 +1,38 @@
+# WordPress ignores
+/wp-content/uploads/
+/wp-content/upgrade/
+/wp-content/cache/
+/wp-content/backups/
+/wp-content/backup-db/
+wp-content/debug.log
+error_log
+
+# Local env files
+.env
+
+# Database dumps
+*.sql
+*.sql.gz
+
+# PHPStorm/IDE files
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Composer (if used)
+/vendor
+
+# npm
+node_modules/
+
+# logs
+*.log
+
+# keep example files
+!.env.example
