@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: brawijaya-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      # Add any other environment variables needed for your app
+      # - NEXT_PUBLIC_API_URL=http://localhost:8080
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - brawijaya-network
+
+  # Development service (uncomment for development)
+  # frontend-dev:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.dev
+  #   container_name: brawijaya-frontend-dev
+  #   ports:
+  #     - "3001:3000"
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules
+  #     - /app/.next
+  #   environment:
+  #     - NODE_ENV=development
+  #   command: npm run dev
+  #   networks:
+  #     - brawijaya-network
+
+networks:
+  brawijaya-network:
+    driver: bridge

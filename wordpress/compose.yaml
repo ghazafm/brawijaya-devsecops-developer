@@ -1,0 +1,21 @@
+services:
+  wordpress:
+    image: wordpress:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    environment:
+      WORDPRESS_DB_HOST: "postgres:${DB_PORT:-5432}"
+      WORDPRESS_DB_NAME: "${DB_NAME:-wordpress}"
+      WORDPRESS_DB_USER: "${DB_USER:-postgres}"
+      WORDPRESS_DB_PASSWORD: "${DB_PASSWORD:-postgres}"
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - task-management-network
+
+wordpress_data:
+  driver: local
