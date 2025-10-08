@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Trash2, Edit3, Check, X } from "lucide-react"
 import type { Todo } from "@/types/todo"
 import { cn } from "@/lib/utils"
-import { SubtaskList } from "./subtask-list"
+import Link from "next/link"
 
 interface TodoItemProps {
   todo: Todo
@@ -96,7 +96,6 @@ export function TodoItem({
                 <Badge variant="outline">{todo.priority}</Badge>
                 <Badge variant="secondary">{todo.status}</Badge>
               </div>
-              {todo.description && <span className="text-sm text-muted-foreground">{todo.description}</span>}
             </div>
           )}
         </div>
@@ -122,6 +121,12 @@ export function TodoItem({
               >
                 <Edit3 className="h-4 w-4" />
               </Button>
+              {/* Lihat detail */}
+              <Link href={`/todos/${todo.id}`} aria-label="Lihat detail">
+                <Button size="sm" variant="outline" className="text-foreground bg-transparent">
+                  Lihat detail
+                </Button>
+              </Link>
               <Button
                 size="sm"
                 variant="ghost"
@@ -136,17 +141,6 @@ export function TodoItem({
 
           {todo.dueDate && <span className="text-xs text-muted-foreground">Jatuh tempo: {todo.dueDate}</span>}
         </div>
-      </div>
-
-      {/* Subtasks section */}
-      <div className="mt-4 pt-4 border-t border-border">
-        <SubtaskList
-          subtasks={todo.subtasks ?? []}
-          onAdd={onAddSubtask}
-          onToggle={onToggleSubtask}
-          onDelete={onDeleteSubtask}
-          onEdit={onEditSubtask}
-        />
       </div>
     </Card>
   )

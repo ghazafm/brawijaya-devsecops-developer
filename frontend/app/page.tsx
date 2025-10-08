@@ -6,7 +6,7 @@ import { TodoForm } from "@/components/todo-form"
 import { TodoList } from "@/components/todo-list"
 import { TodoStats } from "@/components/todo-stats"
 import { useRouter } from "next/navigation"
-import type { Todo, Category, Priority, Status } from "@/types/todo"
+import type { Todo, Category, Priority, Status, Subtask, CompletionStatus } from "@/types/todo"
 import { makeNewTodo, nowISO } from "@/types/todo"
 
 export default function TodoApp() {
@@ -88,16 +88,17 @@ export default function TodoApp() {
     setTodos((prev) =>
       prev.map((t) => {
         if (t.id !== todoId) return t
-        const updated = (t.subtasks ?? []).map((st) =>
-          st.id === subtaskId
-            ? {
-                ...st,
-                isCompleted: st.isCompleted === "yes" ? "no" as const : "yes" as const, // 👈 tambahkan "as const"
-                completedAt: st.isCompleted === "yes" ? null : nowISO(),
-                updatedAt: nowISO(),
-              }
-            : st,
-        )
+        const updated: Subtask[] = (t.subtasks ?? []).map((st): Subtask => {
+          if (st.id !== subtaskId) return st
+          const nextIsCompleted: CompletionStatus = st.isCompleted === "yes" ? "no" : "yes"
+          const nextCompletedAt = nextIsCompleted === "yes" ? nowISO() : null
+          return {
+            ...st,
+            isCompleted: nextIsCompleted,
+            completedAt: nextCompletedAt,
+            updatedAt: nowISO(),
+          }
+        })
         return { ...t, subtasks: updated, updatedAt: nowISO() }
       }),
     )
