@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"time"
 	"net/http"
 	"strconv"
 	"task-management/internal/models"
@@ -77,15 +78,25 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 		req.Category = models.CategoryPersonal
 	}
 
+	// Parse DueDate (opsional)
+	var dueDatePtr *time.Time
+	if req.DueDate != "" {
+		parsed, err := time.Parse(time.RFC3339, req.DueDate)
+		if err != nil {
+			utils.ValidationErrorResponse(c, "Invalid date format. Use RFC3339 (e.g., 2024-12-31T23:59:59Z)")
+			return
+		}
+		dueDatePtr = &parsed
+	}
+
 	todo, err := h.todoService.CreateTodo(
 		userID.(uint),
 		req.Title,
 		req.Description,
 		req.Priority,
 		req.Category,
-		req.DueDate,
+		dueDatePtr, // ✅ sudah *time.Time
 	)
-
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -93,6 +104,7 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 
 	utils.SuccessResponse(c, "Todo created successfully", todo)
 }
+
 
 // GetTodos godoc
 // @Summary Get all todos

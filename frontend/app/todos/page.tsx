@@ -87,6 +87,13 @@ export default function TodoApp() {
     dueDate?: string | null,
   ) => {
     try {
+      // Pastikan dueDate valid ISO (tambahkan waktu 23:59:59)
+      const formattedDate = dueDate
+        ? new Date(`${dueDate}T23:59:59Z`).toISOString()
+        : null;
+
+      console.log("Tanggal dikirim:", formattedDate);
+
       const response = await authFetch(`${API_URL}/todos/`, {
         method: "POST",
         body: JSON.stringify({
@@ -94,26 +101,24 @@ export default function TodoApp() {
           description: description.trim(),
           category,
           priority,
-          due_date: dueDate || null,
+          due_date: formattedDate,
         }),
-      })
+      });
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || "Gagal menambahkan tugas")
+        const error = await response.json();
+        throw new Error(error.message || "Gagal menambahkan tugas");
       }
 
-      const data = await response.json()
-      
-      // Tambahkan todo baru ke state
-      const newTodo = data.data || data
-      setTodos([newTodo, ...todos])
-      toast.success("Tugas berhasil ditambahkan")
+      const data = await response.json();
+      const newTodo = data.data || data;
+      setTodos([newTodo, ...todos]);
+      toast.success("Tugas berhasil ditambahkan");
     } catch (error) {
       if (error instanceof Error) {
-        toast.error(error.message)
+        toast.error(error.message);
       } else {
-        toast.error("Gagal menambahkan tugas")
+        toast.error("Gagal menambahkan tugas");
       }
     }
   }

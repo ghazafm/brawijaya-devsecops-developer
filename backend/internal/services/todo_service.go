@@ -1,6 +1,7 @@
 package services
 
 import (
+    "time"
     "errors"
     "task-management/internal/models"
     "task-management/internal/repository"
@@ -9,7 +10,7 @@ import (
 )
 
 type TodoService interface {
-    CreateTodo(userID uint, title, description string, priority models.Priority, category models.Category, dueDate interface{}) (*models.Todo, error)
+    CreateTodo(userID uint, title, description string, priority models.Priority, category models.Category, dueDate *time.Time) (*models.Todo, error)
     GetTodos(userID uint, status, category string) ([]models.Todo, error)
     GetTodoByID(id, userID uint) (*models.Todo, error)
     GetByIDPublic(id uint) (*models.Todo, error)
@@ -27,7 +28,13 @@ func NewTodoService(todoRepo repository.TodoRepository) TodoService {
     }
 }
 
-func (s *todoService) CreateTodo(userID uint, title, description string, priority models.Priority, category models.Category, dueDate interface{}) (*models.Todo, error) {
+func (s *todoService) CreateTodo(
+    userID uint,
+    title, description string,
+    priority models.Priority,
+    category models.Category,
+    dueDate *time.Time,
+) (*models.Todo, error) {
     todo := &models.Todo{
         UserID:      userID,
         Title:       title,
@@ -35,12 +42,13 @@ func (s *todoService) CreateTodo(userID uint, title, description string, priorit
         Priority:    priority,
         Category:    category,
         Status:      models.StatusTodo,
+        DueDate:     dueDate,
     }
-    
+
     if err := s.todoRepo.Create(todo); err != nil {
         return nil, errors.New("failed to create todo")
     }
-    
+
     return todo, nil
 }
 

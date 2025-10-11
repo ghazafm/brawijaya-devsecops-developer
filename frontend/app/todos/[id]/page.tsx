@@ -92,6 +92,7 @@ export default function TodoDetailPage() {
 
       const data = await response.json()
       const todoData = data.data || data
+      console.log("ini data todo",todoData)
       
       setTodo(todoData)
       setTitle(todoData.title)
@@ -99,7 +100,11 @@ export default function TodoDetailPage() {
       setCategory(todoData.category)
       setPriority(todoData.priority)
       setStatus(todoData.status)
-      setDueDate(todoData.dueDate || todoData.due_date || "")
+      const dateValue = todoData.due_date 
+        ? new Date(todoData.due_date).toISOString().split("T")[0]
+        : ""
+      console.log("Ini date value:",dateValue)
+      setDueDate(dateValue)
     } catch (error) {
       if (error instanceof Error && error.message !== "No token found" && error.message !== "Unauthorized") {
         toast.error("Gagal memuat detail tugas")
@@ -111,53 +116,56 @@ export default function TodoDetailPage() {
   }
 
   const save = async () => {
-    if (!todo) return
+    if (!todo) return;
 
     try {
       const response = await authFetch(`${API_URL}/todos/${todo.id}`, {
         method: "PUT",
         body: JSON.stringify({
           title: title.trim() || todo.title,
-          description: description,
+          description,
           category,
           priority,
           status,
           due_date: dueDate || null,
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Gagal menyimpan perubahan")
+        throw new Error("Gagal menyimpan perubahan");
       }
 
-      const data = await response.json()
-      const updatedTodo = data.data || data
-      
-      setTodo(updatedTodo)
-      toast.success("Perubahan berhasil disimpan")
+      const data = await response.json();
+      const updatedTodo = data.data || data;
+      setTodo(updatedTodo);
+
+      toast.success("Perubahan berhasil disimpan");
+      router.push("/todos");
+      router.refresh();
     } catch (error) {
-      toast.error("Gagal menyimpan perubahan")
+      toast.error("Gagal menyimpan perubahan");
     }
-  }
+  };
 
   const remove = async () => {
-    if (!todo) return
+    if (!todo) return;
 
     try {
       const response = await authFetch(`${API_URL}/todos/${todo.id}`, {
         method: "DELETE",
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Gagal menghapus tugas")
+        throw new Error("Gagal menghapus tugas");
       }
 
-      toast.success("Tugas berhasil dihapus")
-      router.push("/todos")
+      toast.success("Tugas berhasil dihapus");
+      router.push("/todos");
+      router.refresh();
     } catch (error) {
-      toast.error("Gagal menghapus tugas")
+      toast.error("Gagal menghapus tugas");
     }
-  }
+  };
 
   const toggleStatus = async () => {
     if (!todo) return
