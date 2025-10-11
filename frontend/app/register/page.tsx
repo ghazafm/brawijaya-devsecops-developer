@@ -12,9 +12,12 @@ import Link from "next/link"
 import { Mail, Lock, User } from "lucide-react"
 import { toast } from "sonner"
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "YOUR_API_URL"
+
 export default function RegisterPage() {
   const router = useRouter()
-  const [name, setName] = useState("")
+  const [fullName, setFullName] = useState("")
+  const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirm, setConfirm] = useState("")
@@ -22,28 +25,55 @@ export default function RegisterPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !password || !confirm) {
-      // toast({ title: "Form belum lengkap", description: "Mohon isi semua kolom yang diperlukan." })
-      toast("Form belum lengkap")
+    
+    if (!fullName || !username || !email || !password || !confirm) {
+      toast.error("Form belum lengkap")
       return
     }
+    
     if (password.length < 6) {
-      // toast({ title: "Kata sandi lemah", description: "Minimal 6 karakter." })
-      toast("Kata sandi lemah")
+      toast.error("Kata sandi lemah, minimal 6 karakter")
       return
     }
+    
     if (password !== confirm) {
-      // toast({ title: "Konfirmasi salah", description: "Kata sandi dan konfirmasi tidak cocok." })
-      toast("Konfirmasi salah")
+      toast.error("Konfirmasi salah, kata sandi tidak cocok")
       return
     }
 
     try {
       setLoading(true)
-      await new Promise((r) => setTimeout(r, 900))
-      // toast({ title: "Pendaftaran berhasil", description: "Silakan masuk menggunakan akun Anda." })
-      toast("Pendaftaran berhasil")
+      
+      // Panggil API register
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          full_name: fullName,
+          username,
+          email,
+          password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        // Handle error dari server
+        throw new Error(data.message || "Pendaftaran gagal")
+      }
+
+      toast.success("Pendaftaran berhasil! Silakan login")
       router.push("/login")
+      
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error("Terjadi kesalahan saat mendaftar")
+      }
     } finally {
       setLoading(false)
     }
@@ -59,15 +89,31 @@ export default function RegisterPage() {
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nama (opsional)</Label>
+              <Label htmlFor="fullName">Nama Lengkap</Label>
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="name"
+                  id="fullName"
                   type="text"
-                  placeholder="Nama lengkap"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  aria-required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="johndoe"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  aria-required
                 />
               </div>
             </div>
@@ -79,7 +125,7 @@ export default function RegisterPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="nama@contoh.com"
+                  placeholder="john@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   aria-required

@@ -62,10 +62,9 @@ volumes:
     driver: local
 
 networks:
-  networks:
-    proxy:
-      external: true
-      name: proxy
-    task-management-network:
-      external: true
-      name: task-management-network
+  proxy:
+    external: true
+    name: proxy
+  task-management-network:
+    external: true
+    name: task-management-network

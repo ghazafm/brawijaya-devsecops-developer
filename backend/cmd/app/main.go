@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"task-management/internal/auth"
 	"task-management/internal/config"
@@ -13,6 +14,7 @@ import (
 
 	_ "task-management/docs"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -79,19 +81,15 @@ func main() {
 func setupRoutes(authHandler *handlers.AuthHandler, todoHandler *handlers.TodoHandler, cfg *config.Config) *gin.Engine {
 	router := gin.Default()
 
-	// CORS middleware
-	router.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusNoContent)
-			return
-		}
-
-		c.Next()
-	})
+	// ✅ CORS middleware (gunakan library resmi gin-contrib/cors)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// Swagger route
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -117,7 +115,6 @@ func setupRoutes(authHandler *handlers.AuthHandler, todoHandler *handlers.TodoHa
 	protected := api.Group("/")
 	protected.Use(auth.AuthMiddleware(cfg))
 	{
-		// Todo routes
 		todos := protected.Group("/todos")
 		{
 			todos.POST("/", todoHandler.CreateTodo)
@@ -128,7 +125,6 @@ func setupRoutes(authHandler *handlers.AuthHandler, todoHandler *handlers.TodoHa
 			todos.DELETE("/:id", todoHandler.DeleteTodo)
 		}
 
-		// User profile route
 		protected.GET("/profile", func(c *gin.Context) {
 			userID, exists := c.Get("userID")
 			if !exists {
@@ -136,13 +132,10 @@ func setupRoutes(authHandler *handlers.AuthHandler, todoHandler *handlers.TodoHa
 				return
 			}
 
-			// You can implement user profile service here
 			c.JSON(http.StatusOK, gin.H{
 				"status":  "success",
 				"message": "User profile",
-				"data": gin.H{
-					"user_id": userID,
-				},
+				"data":    gin.H{"user_id": userID},
 			})
 		})
 	}

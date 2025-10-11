@@ -31,7 +31,7 @@ const (
 
 type Todo struct {
     ID          uint       `json:"id" gorm:"primaryKey;column:todo_id"`
-    PublicID    uint           `json:"public_id" gorm:"uniqueIndex;autoIncrement"`
+    PublicID    uint       `json:"public_id" gorm:"uniqueIndex;autoIncrement"`
     UserID      uint       `json:"user_id" gorm:"not null"`
     CategoryID  *uint      `json:"category_id"`
     Title       string     `json:"title" gorm:"not null"`

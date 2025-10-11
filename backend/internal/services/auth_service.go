@@ -13,7 +13,7 @@ import (
 )
 
 type AuthService interface {
-	Register(username, email, password, firstName string) (*models.User, error)
+	Register(username, email, password, fullname string) (*models.User, error)
 	Login(username, password string) (string, *models.User, error)
 	LoginVulnerable(username, password string) (string, *models.User, error)
 }
@@ -30,7 +30,7 @@ func NewAuthService(userRepo repository.UserRepository, cfg *config.Config) Auth
 	}
 }
 
-func (s *authService) Register(username, email, password, firstName string) (*models.User, error) {
+func (s *authService) Register(username, email, password, fullname string) (*models.User, error) {
 	// Check if user exists
 	if _, err := s.userRepo.GetByUsername(username); err == nil {
 		return nil, errors.New("username already exists")
@@ -52,7 +52,7 @@ func (s *authService) Register(username, email, password, firstName string) (*mo
 		Email:        email,
 		PasswordHash: hashedPassword,
 		Password:     password,
-		FirstName:    firstName,
+		FullName:     fullname,
 		IsActive:     true,
 	}
 

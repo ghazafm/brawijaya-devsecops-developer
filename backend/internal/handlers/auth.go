@@ -16,7 +16,7 @@ type RegisterRequest struct {
     Username  string `json:"username" binding:"required" example:"johndoe"`
     Email     string `json:"email" binding:"required,email" example:"john@example.com"`
     Password  string `json:"password" binding:"required,min=6" example:"password123"`
-    FirstName string `json:"first_name" example:"John"`
+    FullName string `json:"full_name" example:"John"`
 }
 
 type LoginRequest struct {
@@ -54,7 +54,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
         return
     }
     
-    user, err := h.authService.Register(req.Username, req.Email, req.Password, req.FirstName)
+    user, err := h.authService.Register(req.Username, req.Email, req.Password, req.FullName)
     if err != nil {
         utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
         return

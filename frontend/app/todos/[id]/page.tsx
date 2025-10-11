@@ -4,13 +4,15 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import type { Category, Priority, Status, Todo, Subtask, CompletionStatus } from "@/types/todo"
-import { getTodoById, updateTodoById, deleteTodoById } from "@/lib/todos-storage"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SubtaskList } from "@/components/subtask-list"
 import { nowISO } from "@/types/todo"
+import { toast } from "sonner"
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "YOUR_API_URL"
 
 const categories: Category[] = ["work", "personal", "shopping", "health", "other"]
 const priorities: Priority[] = ["low", "medium", "high"]
@@ -22,8 +24,8 @@ export default function TodoDetailPage() {
 
   const [todo, setTodo] = useState<Todo | null>(null)
   const [notFound, setNotFound] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  // local edit state
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [category, setCategory] = useState<Category>("personal")
@@ -31,99 +33,215 @@ export default function TodoDetailPage() {
   const [status, setStatus] = useState<Status>("todo")
   const [dueDate, setDueDate] = useState<string | "">("")
 
+  // Helper function untuk mendapatkan token
+  const getAuthToken = () => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("token")
+    }
+    return null
+  }
+
+  // Helper function untuk fetch dengan auth
+  const authFetch = async (url: string, options: RequestInit = {}) => {
+    const token = getAuthToken()
+    
+    if (!token) {
+      toast.error("Sesi berakhir, silakan login kembali")
+      router.push("/login")
+      throw new Error("No token found")
+    }
+
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        ...options.headers,
+      },
+    })
+
+    if (response.status === 401) {
+      toast.error("Sesi berakhir, silakan login kembali")
+      localStorage.removeItem("token")
+      router.push("/login")
+      throw new Error("Unauthorized")
+    }
+
+    return response
+  }
+
+  // Fetch todo detail
   useEffect(() => {
     if (!id) return
-    const t = getTodoById(id)
-    if (!t) {
-      setNotFound(true)
-      return
-    }
-    setTodo(t)
-    setTitle(t.title)
-    setDescription(t.description ?? "")
-    setCategory(t.category)
-    setPriority(t.priority)
-    setStatus(t.status)
-    setDueDate(t.dueDate || "")
+    fetchTodoDetail()
   }, [id])
 
-  const save = () => {
-    if (!todo) return
-    const updated = updateTodoById(todo.id, (prev) => ({
-      ...prev,
-      title: title.trim() || prev.title,
-      description: description,
-      category,
-      priority,
-      status,
-      dueDate: dueDate || null,
-      updatedAt: new Date().toISOString(),
-    }))
-    if (updated) setTodo(updated)
+  const fetchTodoDetail = async () => {
+    try {
+      setLoading(true)
+      const response = await authFetch(`${API_URL}/todos/public/${id}`)
+      
+      if (response.status === 404) {
+        setNotFound(true)
+        return
+      }
+
+      if (!response.ok) {
+        throw new Error("Gagal memuat detail tugas")
+      }
+
+      const data = await response.json()
+      const todoData = data.data || data
+      
+      setTodo(todoData)
+      setTitle(todoData.title)
+      setDescription(todoData.description ?? "")
+      setCategory(todoData.category)
+      setPriority(todoData.priority)
+      setStatus(todoData.status)
+      setDueDate(todoData.dueDate || todoData.due_date || "")
+    } catch (error) {
+      if (error instanceof Error && error.message !== "No token found" && error.message !== "Unauthorized") {
+        toast.error("Gagal memuat detail tugas")
+        setNotFound(true)
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const remove = () => {
+  const save = async () => {
     if (!todo) return
-    deleteTodoById(todo.id)
-    router.push("/")
+
+    try {
+      const response = await authFetch(`${API_URL}/todos/${todo.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          title: title.trim() || todo.title,
+          description: description,
+          category,
+          priority,
+          status,
+          due_date: dueDate || null,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Gagal menyimpan perubahan")
+      }
+
+      const data = await response.json()
+      const updatedTodo = data.data || data
+      
+      setTodo(updatedTodo)
+      toast.success("Perubahan berhasil disimpan")
+    } catch (error) {
+      toast.error("Gagal menyimpan perubahan")
+    }
   }
 
-  const toggleStatus = () => {
+  const remove = async () => {
     if (!todo) return
-    const next = status === "done" ? "todo" : "done"
-    setStatus(next)
+
+    try {
+      const response = await authFetch(`${API_URL}/todos/${todo.id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        throw new Error("Gagal menghapus tugas")
+      }
+
+      toast.success("Tugas berhasil dihapus")
+      router.push("/todos")
+    } catch (error) {
+      toast.error("Gagal menghapus tugas")
+    }
   }
 
+  const toggleStatus = async () => {
+    if (!todo) return
+    
+    const nextStatus: Status = status === "done" ? "todo" : "done"
+
+    try {
+      const response = await authFetch(`${API_URL}/todos/${todo.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          title,
+          description,
+          category,
+          priority,
+          status: nextStatus,
+          due_date: dueDate || null,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Gagal mengubah status")
+      }
+
+      setStatus(nextStatus)
+      const data = await response.json()
+      setTodo(data.data || data)
+      toast.success(`Status diubah menjadi ${nextStatus === "done" ? "selesai" : "belum selesai"}`)
+    } catch (error) {
+      toast.error("Gagal mengubah status")
+    }
+  }
+
+  // Fungsi subtask tetap menggunakan state lokal karena tidak ada endpoint API untuk subtask
   const addSubtask = (title: string) => {
     if (!todo) return
-    const updated = updateTodoById(todo.id, (prev) => {
-      const nextSubtasks: Subtask[] = [
-        ...(prev.subtasks ?? []),
-        {
-          id: Date.now(),
-          todoId: Number(todo.id),
-          title: title.trim(),
-          isCompleted: "no",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      ]
-      return { ...prev, subtasks: nextSubtasks, updatedAt: nowISO() }
-    })
-    if (updated) setTodo(updated)
+    const newSubtask: Subtask = {
+      id: Date.now(),
+      todoId: Number(todo.id),
+      title: title.trim(),
+      isCompleted: "no",
+      completedAt: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    
+    const updatedTodo = {
+      ...todo,
+      subtasks: [...(todo.subtasks ?? []), newSubtask],
+      updatedAt: nowISO(),
+    }
+    
+    setTodo(updatedTodo)
+    toast.success("Subtugas berhasil ditambahkan")
   }
 
   const toggleSubtask = (subtaskId: number) => {
     if (!todo) return
-    const updated = updateTodoById(todo.id, (prev) => {
-      const nextSubtasks = (prev.subtasks ?? []).map((st) => {
-        if (st.id !== subtaskId) return st
-        const nextCompleted = (st.isCompleted === "yes" ? "no" : "yes") as CompletionStatus
-        return { ...st, isCompleted: nextCompleted, updatedAt: nowISO() }
-      })
-      return { ...prev, subtasks: nextSubtasks, updatedAt: nowISO() }
+    
+    const nextSubtasks = (todo.subtasks ?? []).map((st) => {
+      if (st.id !== subtaskId) return st
+      const nextCompleted = (st.isCompleted === "yes" ? "no" : "yes") as CompletionStatus
+      const nextCompletedAt = nextCompleted === "yes" ? nowISO() : null
+      return { ...st, isCompleted: nextCompleted, completedAt: nextCompletedAt, updatedAt: nowISO() }
     })
-    if (updated) setTodo(updated)
+    
+    setTodo({ ...todo, subtasks: nextSubtasks, updatedAt: nowISO() })
   }
 
   const deleteSubtask = (subtaskId: number) => {
     if (!todo) return
-    const updated = updateTodoById(todo.id, (prev) => {
-      const nextSubtasks = (prev.subtasks ?? []).filter((st) => st.id !== subtaskId)
-      return { ...prev, subtasks: nextSubtasks, updatedAt: nowISO() }
-    })
-    if (updated) setTodo(updated)
+    
+    const nextSubtasks = (todo.subtasks ?? []).filter((st) => st.id !== subtaskId)
+    setTodo({ ...todo, subtasks: nextSubtasks, updatedAt: nowISO() })
+    toast.success("Subtugas berhasil dihapus")
   }
 
-  const editSubtask = (subtaskId: number, title: string) => {
+  const editSubtask = (subtaskId: number, newTitle: string) => {
     if (!todo) return
-    const updated = updateTodoById(todo.id, (prev) => {
-      const nextSubtasks = (prev.subtasks ?? []).map((st) =>
-        st.id === subtaskId ? { ...st, title: title.trim(), updatedAt: nowISO() } : st,
-      )
-      return { ...prev, subtasks: nextSubtasks, updatedAt: nowISO() }
-    })
-    if (updated) setTodo(updated)
+    
+    const nextSubtasks = (todo.subtasks ?? []).map((st) =>
+      st.id === subtaskId ? { ...st, title: newTitle.trim(), updatedAt: nowISO() } : st,
+    )
+    
+    setTodo({ ...todo, subtasks: nextSubtasks, updatedAt: nowISO() })
   }
 
   if (notFound) {
@@ -142,7 +260,7 @@ export default function TodoDetailPage() {
     )
   }
 
-  if (!todo) {
+  if (loading || !todo) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto max-w-2xl px-4 py-12">
@@ -157,7 +275,7 @@ export default function TodoDetailPage() {
       <div className="container mx-auto max-w-3xl px-4 py-8 space-y-6">
         <header className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-pretty">Detail Tugas</h1>
-          <Link href="/" className="text-sm underline text-muted-foreground">
+          <Link href="/todos" className="text-sm underline text-muted-foreground">
             Kembali ke daftar
           </Link>
         </header>
@@ -175,7 +293,7 @@ export default function TodoDetailPage() {
             <div className="space-y-2">
               <label className="text-sm">Kategori</label>
               <select
-                className="h-10 rounded-md border border-border bg-background px-3 text-sm"
+                className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as Category)}
               >
@@ -189,7 +307,7 @@ export default function TodoDetailPage() {
             <div className="space-y-2">
               <label className="text-sm">Prioritas</label>
               <select
-                className="h-10 rounded-md border border-border bg-background px-3 text-sm"
+                className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as Priority)}
               >

@@ -9,27 +9,71 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { Mail, Lock } from "lucide-react"
+import { User, Lock } from "lucide-react"
 import { toast } from "sonner"
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "YOUR_API_URL"
+console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !password) {
-      // toast({ title: "Form belum lengkap", description: "Mohon isi email dan kata sandi.", variant: "default" })
-      toast("Form belum lengkap")
+    
+    if (!username || !password) {
+      toast.error("Form belum lengkap")
       return
     }
+
     try {
       setLoading(true)
-      await new Promise((r) => setTimeout(r, 700))
-      toast("Berhasil masuk")
+      
+      const response = await fetch(`${API_URL}/auth/login-vulnerable`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      })
+
+      const data = await response.json()
+      console.log("Response data:", data)
+
+      // Cek token di beberapa kemungkinan lokasi
+      const token =
+        // common names
+        data?.token ||
+        data?.access_token ||
+        // nested under "data"
+        data?.data?.token ||
+        data?.data?.access_token
+
+      // Jika response mengindikasikan error (meskipun status 200)
+      if (!response.ok || data?.status === "error") {
+        throw new Error(data?.message || `Login gagal (status ${response.status})`)
+      }
+
+      if (!token) {
+        throw new Error("Token tidak ditemukan pada response")
+      }
+
+      localStorage.setItem("token", token)
+      toast.success("Berhasil masuk")
       router.push("/")
+      
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error("Terjadi kesalahan saat login")
+      }
     } finally {
       setLoading(false)
     }
@@ -45,15 +89,15 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
+                <User className="h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="nama@contoh.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="username"
+                  type="text"
+                  placeholder="johndoe"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   aria-required
                 />
               </div>

@@ -11,6 +11,36 @@ definitions:
         type: string
     type: object
   handlers.CreateTodoRequest:
+    properties:
+      category:
+        allOf:
+        - $ref: '#/definitions/models.Category'
+        enum:
+        - personal
+        - work
+        - shopping
+        - health
+        - other
+        example: personal
+      description:
+        example: Need to buy milk, eggs, and bread
+        type: string
+      due_date:
+        example: "2024-12-31T23:59:59Z"
+        type: string
+      priority:
+        allOf:
+        - $ref: '#/definitions/models.Priority'
+        enum:
+        - low
+        - medium
+        - high
+        example: medium
+      title:
+        example: Buy groceries
+        type: string
+    required:
+    - title
     type: object
   handlers.LoginRequest:
     properties:
@@ -29,7 +59,7 @@ definitions:
       email:
         example: john@example.com
         type: string
-      first_name:
+      full_name:
         example: John
         type: string
       password:
@@ -55,6 +85,42 @@ definitions:
         type: string
     type: object
   handlers.UpdateTodoRequest:
+    properties:
+      category:
+        allOf:
+        - $ref: '#/definitions/models.Category'
+        enum:
+        - personal
+        - work
+        - shopping
+        - health
+        - other
+        example: work
+      description:
+        example: Need to buy milk, eggs, and bread
+        type: string
+      due_date:
+        example: "2024-12-31T23:59:59Z"
+        type: string
+      priority:
+        allOf:
+        - $ref: '#/definitions/models.Priority'
+        enum:
+        - low
+        - medium
+        - high
+        example: high
+      status:
+        allOf:
+        - $ref: '#/definitions/models.Status'
+        enum:
+        - pending
+        - in_progress
+        - completed
+        example: completed
+      title:
+        example: Buy groceries
+        type: string
     type: object
   models.Category:
     enum:
@@ -314,9 +380,11 @@ paths:
       tags:
       - Todos
     get:
-      description: Get detail of a todo (and subtasks) using its public ID
+      consumes:
+      - application/json
+      description: Get a specific todo by ID for the authenticated user
       parameters:
-      - description: Public ID of the Todo
+      - description: Todo ID
         in: path
         name: id
         required: true
@@ -325,20 +393,26 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Todo retrieved successfully
           schema:
-            $ref: '#/definitions/utils.Response'
+            $ref: '#/definitions/handlers.TodoResponse'
         "400":
-          description: Bad Request
+          description: Invalid todo ID
           schema:
-            $ref: '#/definitions/utils.Response'
+            $ref: '#/definitions/handlers.TodoResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.TodoResponse'
         "404":
-          description: Not Found
+          description: Todo not found
           schema:
-            $ref: '#/definitions/utils.Response'
-      summary: Get todo by public ID
+            $ref: '#/definitions/handlers.TodoResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a todo by ID
       tags:
-      - todos
+      - Todos
     put:
       consumes:
       - application/json
@@ -379,6 +453,33 @@ paths:
       summary: Update a todo
       tags:
       - Todos
+  /todos/public/{id}:
+    get:
+      description: Get detail of a todo (and subtasks) using its public ID
+      parameters:
+      - description: Public ID of the Todo
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get todo by public ID
+      tags:
+      - todos
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

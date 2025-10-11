@@ -283,7 +283,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/todos/{id}": {
+        "/todos/public/{id}": {
             "get": {
                 "description": "Get detail of a todo (and subtasks) using its public ID",
                 "produces": [
@@ -319,6 +319,61 @@ const docTemplate = `{
                         "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/todos/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a specific todo by ID for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Todos"
+                ],
+                "summary": "Get a todo by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Todo ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Todo retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TodoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid todo ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TodoResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TodoResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Todo not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TodoResponse"
                         }
                     }
                 }
@@ -450,7 +505,52 @@ const docTemplate = `{
             }
         },
         "handlers.CreateTodoRequest": {
-            "type": "object"
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "category": {
+                    "enum": [
+                        "personal",
+                        "work",
+                        "shopping",
+                        "health",
+                        "other"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Category"
+                        }
+                    ],
+                    "example": "personal"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Need to buy milk, eggs, and bread"
+                },
+                "due_date": {
+                    "type": "string",
+                    "example": "2024-12-31T23:59:59Z"
+                },
+                "priority": {
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Priority"
+                        }
+                    ],
+                    "example": "medium"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Buy groceries"
+                }
+            }
         },
         "handlers.LoginRequest": {
             "type": "object",
@@ -481,7 +581,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "john@example.com"
                 },
-                "first_name": {
+                "full_name": {
                     "type": "string",
                     "example": "John"
                 },
@@ -511,7 +611,62 @@ const docTemplate = `{
             }
         },
         "handlers.UpdateTodoRequest": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "category": {
+                    "enum": [
+                        "personal",
+                        "work",
+                        "shopping",
+                        "health",
+                        "other"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Category"
+                        }
+                    ],
+                    "example": "work"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Need to buy milk, eggs, and bread"
+                },
+                "due_date": {
+                    "type": "string",
+                    "example": "2024-12-31T23:59:59Z"
+                },
+                "priority": {
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Priority"
+                        }
+                    ],
+                    "example": "high"
+                },
+                "status": {
+                    "enum": [
+                        "pending",
+                        "in_progress",
+                        "completed"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Status"
+                        }
+                    ],
+                    "example": "completed"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Buy groceries"
+                }
+            }
         },
         "models.Category": {
             "type": "string",
