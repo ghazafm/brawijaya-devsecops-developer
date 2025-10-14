@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -50,7 +48,6 @@ services:
         condition: service_healthy
     networks:
       - task-management-network
-      - proxy
     command: ["./main"]
 
 volumes:
@@ -58,6 +55,9 @@ volumes:
     driver: local
 
 networks:
+  proxy:
+    external: true
+    name: proxy
   task-management-network:
     external: true
     name: task-management-network

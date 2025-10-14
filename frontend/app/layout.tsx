@@ -1,4 +1,5 @@
 import "@/app/global.css"
+import { Toaster } from "sonner"
 
 export const metadata = {
   title: 'Next.js',
@@ -12,7 +13,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Toaster/>
+        {children}</body>
     </html>
   )
 }
