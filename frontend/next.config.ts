@@ -1,15 +1,25 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Enable standalone output for Docker optimization
   output: 'standalone',
-  // Optimize for production builds
   swcMinify: true,
-  // Enable experimental features for better performance
   experimental: {
-    // Optimize package imports
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-checkbox', '@radix-ui/react-label', '@radix-ui/react-select']
-  }
+    optimizePackageImports: [
+      'lucide-react',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-label',
+      '@radix-ui/react-select'
+    ]
+  },
+
+  async rewrites() {
+    return [
+      {
+        source: '/auth/:path*',
+        destination: 'http://task-management-app:8080/auth/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
