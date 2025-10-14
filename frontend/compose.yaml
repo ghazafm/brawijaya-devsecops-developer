@@ -23,8 +23,9 @@ services:
       - task-management-network
 
 networks:
-  external: true
-  name: task-management-network
-proxy:
-  external: true
-  name: proxy
+  task-management-network:
+    external: true
+    name: task-management-network
+  proxy:
+    external: true
+    name: proxy
