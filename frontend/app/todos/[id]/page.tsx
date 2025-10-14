@@ -12,8 +12,6 @@ import { SubtaskList } from "@/components/subtask-list"
 import { nowISO } from "@/types/todo"
 import { toast } from "sonner"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "YOUR_API_URL"
-
 const categories: Category[] = ["work", "personal", "shopping", "health", "other"]
 const priorities: Priority[] = ["low", "medium", "high"]
 
@@ -79,7 +77,7 @@ export default function TodoDetailPage() {
   const fetchTodoDetail = async () => {
     try {
       setLoading(true)
-      const response = await authFetch(`${API_URL}/todos/public/${id}`)
+      const response = await authFetch(`/todos/public/${id}`)
       
       if (response.status === 404) {
         setNotFound(true)
@@ -119,7 +117,7 @@ export default function TodoDetailPage() {
     if (!todo) return;
 
     try {
-      const response = await authFetch(`${API_URL}/todos/${todo.id}`, {
+      const response = await authFetch(`/todos/${todo.id}`, {
         method: "PUT",
         body: JSON.stringify({
           title: title.trim() || todo.title,
@@ -151,7 +149,7 @@ export default function TodoDetailPage() {
     if (!todo) return;
 
     try {
-      const response = await authFetch(`${API_URL}/todos/${todo.id}`, {
+      const response = await authFetch(`/todos/${todo.id}`, {
         method: "DELETE",
       });
 
@@ -173,7 +171,7 @@ export default function TodoDetailPage() {
     const nextStatus: Status = status === "done" ? "todo" : "done"
 
     try {
-      const response = await authFetch(`${API_URL}/todos/${todo.id}`, {
+      const response = await authFetch(`/todos/${todo.id}`, {
         method: "PUT",
         body: JSON.stringify({
           title,

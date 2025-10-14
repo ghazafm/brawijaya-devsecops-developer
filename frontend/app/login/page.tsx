@@ -12,9 +12,6 @@ import Link from "next/link"
 import { User, Lock } from "lucide-react"
 import { toast } from "sonner"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "YOUR_API_URL"
-console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
-
 export default function LoginPage() {
   const router = useRouter()
   const [username, setUsername] = useState("")
@@ -32,7 +29,7 @@ export default function LoginPage() {
     try {
       setLoading(true)
       
-      const response = await fetch(`${API_URL}/auth/login-vulnerable`, {
+      const response = await fetch(`/auth/login-vulnerable`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
