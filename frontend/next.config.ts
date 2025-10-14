@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "YOUR_API_URL"
+const endpoints = ['auth', 'todos']
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   swcMinify: true,
@@ -13,12 +16,10 @@ const nextConfig: NextConfig = {
   },
 
   async rewrites() {
-    return [
-      {
-        source: '/auth/:path*',
-        destination: 'http://task-management-app:8080/auth/:path*',
-      },
-    ];
+    return endpoints.map((ep) => ({
+      source: `/${ep}/:path*`,
+      destination: `${API_URL}/${ep}/:path*`,
+    }));
   },
 };
 

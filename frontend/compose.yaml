@@ -6,8 +6,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: brawijaya-frontend
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
@@ -22,11 +20,11 @@ services:
       start_period: 40s
     networks:
       - proxy
+      - task-management-network
 
 networks:
-  task-management-network:
-    external: true
-    name: task-management-network
-  proxy:
-    external: true
-    name: proxy
+  external: true
+  name: task-management-network
+proxy:
+  external: true
+  name: proxy
