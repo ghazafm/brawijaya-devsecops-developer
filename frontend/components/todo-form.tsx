@@ -61,7 +61,7 @@ export function TodoForm({ onAddTodo }: TodoFormProps) {
               onChange={(e) => setDescription(e.target.value)}
               className="bg-input border-border"
             />
-            <div className="mt-2 prose">
+            <div className="mt-2 prose hidden">
               <div dangerouslySetInnerHTML={{ __html: description }} />
             </div>
           </div>
