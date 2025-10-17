@@ -83,7 +83,7 @@ func setupRoutes(authHandler *handlers.AuthHandler, todoHandler *handlers.TodoHa
 
 	// ✅ CORS middleware (gunakan library resmi gin-contrib/cors)
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://app.fauzanghaza.com"},
+		AllowOrigins:     []string{"https://app.fauzanghaza.com", "http://localhost:8080"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
