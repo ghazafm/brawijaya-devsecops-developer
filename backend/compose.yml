@@ -48,6 +48,7 @@ services:
         condition: service_healthy
     networks:
       - task-management-network
+      - proxy
     command: ["./main"]
 
 volumes:
