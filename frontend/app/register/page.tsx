@@ -12,6 +12,8 @@ import Link from "next/link"
 import { Mail, Lock, User } from "lucide-react"
 import { toast } from "sonner"
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "YOUR_API_URL"
+
 export default function RegisterPage() {
   const router = useRouter()
   const [fullName, setFullName] = useState("")
@@ -43,7 +45,7 @@ export default function RegisterPage() {
       setLoading(true)
       
       // Panggil API register
-      const response = await fetch(`/auth/register`, {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
