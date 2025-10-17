@@ -59,7 +59,7 @@ export default function TodoApp() {
   const fetchTodos = async () => {
     try {
       setLoading(true)
-      const response = await authFetch(`/todos/`)
+      const response = await authFetch(`/api/todos/`)
       
       if (!response.ok) {
         throw new Error("Gagal memuat todos")
@@ -92,7 +92,7 @@ export default function TodoApp() {
 
       console.log("Tanggal dikirim:", formattedDate);
 
-      const response = await authFetch(`/todos/`, {
+      const response = await authFetch(`/api/todos/`, {
         method: "POST",
         body: JSON.stringify({
           title: title.trim(),
@@ -129,7 +129,7 @@ export default function TodoApp() {
     const newStatus: Status = todo.status === "done" ? "todo" : "done"
 
     try {
-      const response = await authFetch(`/todos/${id}`, {
+      const response = await authFetch(`/api/todos/${id}`, {
         method: "PUT",
         body: JSON.stringify({
           title: todo.title,
@@ -164,7 +164,7 @@ export default function TodoApp() {
 
   const deleteTodo = async (id: string) => {
     try {
-      const response = await authFetch(`/todos/${id}`, {
+      const response = await authFetch(`/api/todos/${id}`, {
         method: "DELETE",
       })
 
@@ -184,7 +184,7 @@ export default function TodoApp() {
     if (!todo) return
 
     try {
-      const response = await authFetch(`/todos/${id}`, {
+      const response = await authFetch(`/api/todos/${id}`, {
         method: "PUT",
         body: JSON.stringify({
           title: newTitle.trim(),
@@ -216,7 +216,7 @@ export default function TodoApp() {
       // Hapus semua completed todos
       await Promise.all(
         completedTodos.map((todo) =>
-          authFetch(`/todos/${todo.id}`, {
+          authFetch(`/api/todos/${todo.id}`, {
             method: "DELETE",
           })
         )

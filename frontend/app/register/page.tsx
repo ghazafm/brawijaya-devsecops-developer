@@ -45,7 +45,7 @@ export default function RegisterPage() {
       setLoading(true)
       
       // Panggil API register
-      const response = await fetch(`/auth/register`, {
+      const response = await fetch(`/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

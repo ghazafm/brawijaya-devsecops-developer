@@ -29,7 +29,7 @@ export default function LoginPage() {
     try {
       setLoading(true)
       
-      const response = await fetch(`/auth/login-vulnerable`, {
+      const response = await fetch(`/api/auth/login-vulnerable`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

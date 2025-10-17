@@ -77,7 +77,7 @@ export default function TodoDetailPage() {
   const fetchTodoDetail = async () => {
     try {
       setLoading(true)
-      const response = await authFetch(`/todos/public/${id}`)
+      const response = await authFetch(`/api/todos/public/${id}`)
       
       if (response.status === 404) {
         setNotFound(true)
@@ -117,7 +117,7 @@ export default function TodoDetailPage() {
     if (!todo) return;
 
     try {
-      const response = await authFetch(`/todos/${todo.id}`, {
+      const response = await authFetch(`/api/todos/${todo.id}`, {
         method: "PUT",
         body: JSON.stringify({
           title: title.trim() || todo.title,
@@ -149,7 +149,7 @@ export default function TodoDetailPage() {
     if (!todo) return;
 
     try {
-      const response = await authFetch(`/todos/${todo.id}`, {
+      const response = await authFetch(`/api/todos/${todo.id}`, {
         method: "DELETE",
       });
 
@@ -171,7 +171,7 @@ export default function TodoDetailPage() {
     const nextStatus: Status = status === "done" ? "todo" : "done"
 
     try {
-      const response = await authFetch(`/todos/${todo.id}`, {
+      const response = await authFetch(`/api/todos/${todo.id}`, {
         method: "PUT",
         body: JSON.stringify({
           title,
