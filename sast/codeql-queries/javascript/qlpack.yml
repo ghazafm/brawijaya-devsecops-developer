@@ -1,0 +1,10 @@
+name: brawijaya/javascript-security-queries
+version: 1.0.0
+groups:
+  - javascript
+  - queries
+  - security
+extractor: javascript
+dependencies:
+  codeql/javascript-all: ^2.2.0
+warnOnImplicitThis: true

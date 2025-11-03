@@ -1,0 +1,10 @@
+name: brawijaya/go-security-queries
+version: 1.0.0
+groups:
+  - go
+  - queries
+  - security
+extractor: go
+dependencies:
+  codeql/go-all: ^5.0.0
+warnOnImplicitThis: true
