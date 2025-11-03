@@ -40,15 +40,13 @@ services:
         define('WP_HOME', 'https://${WORDPRESS_DOMAIN:-wordpress-app}');
         define('WP_SITEURL', 'https://${WORDPRESS_DOMAIN:-wordpress-app}');
     volumes:
-      - wordpress_data:/var/www/html
+      - ./data:/var/www/html
       - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
     networks:
       - wordpress-network
       - proxy
 
 volumes:
-  wordpress_data:
-    driver: local
   mysql_data:
     driver: local
 
