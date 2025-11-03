@@ -36,3 +36,4 @@ node_modules/
 
 # keep example files
 !.env.example
+data/*
