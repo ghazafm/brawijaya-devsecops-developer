@@ -22,7 +22,10 @@ services:
 
   # WordPress Application
   wordpress:
-    image: wordpress:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: wordpress-custom:latest
     container_name: wordpress-app
     depends_on:
       mysql:
