@@ -1,0 +1,34 @@
+rules:
+  - id: go.rawquery-sqli
+    languages: [go]
+    severity: ERROR
+    message: |
+      Possible SQL injection: SQL string is built with fmt.Sprintf and passed to a custom RawQuery sink.
+      Use parameterized queries / prepared statements instead of building SQL with fmt.Sprintf.
+    patterns:
+      # direct: RawQuery(fmt.Sprintf(...))
+      - pattern: $X.RawQuery(fmt.Sprintf(...))
+
+      # build query into variable then pass to RawQuery
+      - pattern-either:
+          - pattern: |
+              $Q := fmt.Sprintf($FMT, ...)
+              $X.RawQuery($Q)
+          - pattern: |
+              $Q = fmt.Sprintf($FMT, ...)
+              $X.RawQuery($Q)
+
+      # also catch plain RawQuery($SQL) where $SQL looks like SQL (SQL keywords)
+      - pattern: $X.RawQuery($SQL)
+
+      # flag if the format string likely contains SQL keywords
+      - metavariable-regex:
+          metavariable: $FMT
+          regex: "(?i).*\\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN)\\b.*"
+
+  - id: go.fmt-sprintf-sql-warning
+    languages: [go]
+    severity: WARNING
+    message: "fmt.Sprintf used — if the format builds SQL with user inputs, this may be vulnerable to SQL injection."
+    pattern: |
+      fmt.Sprintf($FMT, ...)
