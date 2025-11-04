@@ -1,0 +1,4 @@
+database: 
+username: 
+password_hash: 
+email: 

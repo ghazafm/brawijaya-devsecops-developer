@@ -1,0 +1,43 @@
+# semgrep-rules.yml
+rules:
+  - id: wordpress-xss-unescaped-output
+    patterns:
+      - pattern: echo $X;
+      - pattern-not: echo esc_html($X);
+      - pattern-not: echo esc_attr($X);
+      - pattern-not: echo esc_url($X);
+    message: Potential XSS - output not escaped
+    severity: ERROR
+    languages: [php]
+    
+  - id: wordpress-sql-injection
+    patterns:
+      - pattern: $wpdb->query($query)
+      - pattern-not: $wpdb->query($wpdb->prepare(...))
+    message: Potential SQL Injection - query not prepared
+    severity: ERROR
+    languages: [php]
+    
+  - id: wordpress-missing-nonce-check
+    patterns:
+      - pattern: |
+          if (isset($_POST['action'])) {
+            ...
+          }
+      - pattern-not-inside: |
+          if (wp_verify_nonce(...)) {
+            ...
+          }
+    message: Missing nonce verification - CSRF vulnerability
+    severity: WARNING
+    languages: [php]
+    
+  - id: wordpress-unvalidated-input
+    patterns:
+      - pattern: $_GET[...]
+      - pattern-not: sanitize_text_field($_GET[...])
+      - pattern-not: intval($_GET[...])
+      - pattern-not: absint($_GET[...])
+    message: Unvalidated user input
+    severity: WARNING
+    languages: [php]
