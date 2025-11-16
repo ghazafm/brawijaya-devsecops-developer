@@ -1,0 +1,33 @@
+name: brawijaya-devsecops
+paths:
+  # Only scan app code
+  - backend
+  - frontend
+
+paths-ignore:
+  # Huge / generated / irrelevant stuff
+  - frontend/node_modules
+  - frontend/.next
+  - frontend/.turbo
+  - frontend/coverage
+  - frontend/dist
+  - frontend/build
+
+  # WordPress lab, scanned by other tools, not CodeQL
+  - wordpress
+
+  # PoC attack scripts, not production app
+  - attack
+
+  # CodeQL DBs & working dirs (so CodeQL doesn't eat its own output)
+  - sast/codeql
+  - sast/codeql/**
+
+  # Generic junk
+  - "**/vendor"
+  - "**/tmp"
+  - "**/coverage"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
