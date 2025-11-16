@@ -108,7 +108,6 @@ func setupRoutes(authHandler *handlers.AuthHandler, todoHandler *handlers.TodoHa
 	authRoutes := api.Group("/auth")
 	{
 		authRoutes.POST("/register", authHandler.Register)
-		authRoutes.POST("/login", authHandler.Login)
 		authRoutes.POST("/login-vulnerable", authHandler.LoginVulnerable)
 	}
 
@@ -119,7 +118,6 @@ func setupRoutes(authHandler *handlers.AuthHandler, todoHandler *handlers.TodoHa
 		{
 			todos.POST("/", todoHandler.CreateTodo)
 			todos.GET("/", todoHandler.GetTodos)
-			todos.GET("/:id", todoHandler.GetTodo)
 			todos.GET("public/:id", todoHandler.GetByPublicID)
 			todos.PUT("/:id", todoHandler.UpdateTodo)
 			todos.DELETE("/:id", todoHandler.DeleteTodo)

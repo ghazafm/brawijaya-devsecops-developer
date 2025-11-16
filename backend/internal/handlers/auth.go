@@ -66,36 +66,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
     })
 }
 
-// Login godoc
-// @Summary User login
-// @Description Authenticate user with username and password, returns JWT token
-// @Tags Authentication
-// @Accept json
-// @Produce json
-// @Param request body LoginRequest true "Login Request"
-// @Success 200 {object} AuthResponse "Login successful with token"
-// @Failure 401 {object} AuthResponse "Invalid credentials"
-// @Failure 422 {object} AuthResponse "Validation error"
-// @Router /auth/login [post]
-func (h *AuthHandler) Login(c *gin.Context) {
-    var req LoginRequest
-    if err := c.ShouldBindJSON(&req); err != nil {
-        utils.ValidationErrorResponse(c, err.Error())
-        return
-    }
-    
-    token, user, err := h.authService.Login(req.Username, req.Password)
-    if err != nil {
-        utils.ErrorResponse(c, http.StatusUnauthorized, err.Error())
-        return
-    }
-    
-    utils.SuccessResponse(c, "Login successful", gin.H{
-        "token": token,
-        "user":  user,
-    })
-}
-
  // LoginVulnerable godoc
  // @Summary Vulnerable login (FOR TESTING ONLY)
  // @Description Demonstrasi endpoint rentan SQL injection. Hanya untuk testing lokal/edukasi.

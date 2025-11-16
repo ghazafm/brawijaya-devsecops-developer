@@ -138,41 +138,6 @@ func (h *TodoHandler) GetTodos(c *gin.Context) {
 	utils.SuccessResponse(c, "Todos retrieved successfully", todos)
 }
 
-// GetTodo godoc
-// @Summary Get a todo by ID
-// @Description Get a specific todo by ID for the authenticated user
-// @Tags Todos
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "Todo ID"
-// @Success 200 {object} TodoResponse "Todo retrieved successfully"
-// @Failure 400 {object} TodoResponse "Invalid todo ID"
-// @Failure 401 {object} TodoResponse "Unauthorized"
-// @Failure 404 {object} TodoResponse "Todo not found"
-// @Router /todos/{id} [get]
-func (h *TodoHandler) GetTodo(c *gin.Context) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "User not authenticated")
-		return
-	}
-
-	todoID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		utils.ValidationErrorResponse(c, "Invalid todo ID")
-		return
-	}
-
-	todo, err := h.todoService.GetTodoByID(uint(todoID), userID.(uint))
-	if err != nil {
-		utils.ErrorResponse(c, http.StatusNotFound, err.Error())
-		return
-	}
-
-	utils.SuccessResponse(c, "Todo retrieved successfully", todo)
-}
-
 // UpdateTodo godoc
 // @Summary Update a todo
 // @Description Update a specific todo by ID for the authenticated user
