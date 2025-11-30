@@ -19,17 +19,7 @@ pipeline {
             steps {
                 echo 'Checking out source on builtin node'
                 checkout scm
-                script {
-                    def branch = sh(
-                        script: """
-                            git rev-parse --abbrev-ref HEAD 2>/dev/null || echo HEAD
-                        """,
-                        returnStdout: true
-                    ).trim()
-
-                    env.EFFECTIVE_BRANCH = branch
-                    echo "Detected branch: ${env.EFFECTIVE_BRANCH}"
-                }
+                env.EFFECTIVE_BRANCH = "master"
             }
 
         }
