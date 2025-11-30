@@ -118,7 +118,7 @@ pipeline {
             agent { label 'builtin' }
             steps {
                 script {
-                    // determine tag: prefer short commit hash, fallback to build number
+
                     def tag = sh(script: "git rev-parse --short=7 HEAD || echo ${env.BUILD_NUMBER}", returnStdout: true).trim()
                     env.IMAGE_TAG = tag
                     echo "Using image tag: ${env.IMAGE_TAG}"
@@ -126,7 +126,6 @@ pipeline {
                     def backendImage = "fauzanghaza/brawijaya-devsecops-backend:${env.IMAGE_TAG}"
                     def frontendImage = "fauzanghaza/brawijaya-devsecops-frontend:${env.IMAGE_TAG}"
 
-                    // Optional docker login if credentials are provided via environment variables
                     sh """
                         if [ -n \"$DOCKERHUB_USER\" ] && [ -n \"$DOCKERHUB_PASS\" ]; then
                             echo 'Logging in to Docker registry'
