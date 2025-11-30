@@ -5,6 +5,9 @@ def COLOR_MAP = [
 
 pipeline {
     agent none
+    // environment {
+    //     PATH = "/home/jenkins/.local/bin:/home/jenkins/codeql:${env.PATH}"
+    // }
     options {
         timestamps()
         buildDiscarder(logRotator(numToKeepStr: '10'))
@@ -236,33 +239,59 @@ pipeline {
 
         stage('Deploy to Production') {
             agent { label 'nasigoreng' }
-            steps {
-                echo 'Deploying to production on nasigoreng node using docker compose (using IMAGE_TAG env var)'
-                sh """
-                    set -e
-                    if command -v docker compose >/dev/null 2>&1; then
-                        # Deploy backend using IMAGE_TAG environment variable
-                        if [ -f backend/compose.yml ]; then
-                            echo "Deploying backend with IMAGE_TAG=${IMAGE_TAG}"
-                            IMAGE_TAG=${IMAGE_TAG} docker compose -f backend/compose.yml pull || true
-                            IMAGE_TAG=${IMAGE_TAG} docker compose -f backend/compose.yml up -d --remove-orphans || true
-                        else
-                            echo 'backend/compose.yml not found, skipping backend compose'
-                        fi
+            stages {
 
-                        # Deploy frontend using IMAGE_TAG environment variable
-                        if [ -f frontend/compose.yaml ]; then
-                            echo "Deploying frontend with IMAGE_TAG=${IMAGE_TAG}"
-                            IMAGE_TAG=${IMAGE_TAG} docker compose -f frontend/compose.yaml pull || true
-                            IMAGE_TAG=${IMAGE_TAG} docker compose -f frontend/compose.yaml up -d --remove-orphans || true
-                        else
-                            echo 'frontend/compose.yaml not found, skipping frontend compose'
-                        fi
-                    else
-                        echo 'docker compose not found on nasigoreng; please install or adjust deployment command'
-                        exit 0
-                    fi
-                """
+                stage('Generate environment files') {
+                    steps {
+                        withCredentials([file(credentialsId: 'nasigoreng-satu', variable: 'BACKEND_ENVFILE')]) {
+                        sh '''
+                            mkdir -p backend
+                            cp "$BACKEND_ENVFILE" backend/.env
+                            chmod 600 backend/.env
+                        '''
+                        }
+                    }
+                    steps {
+                        withCredentials([file(credentialsId: 'nasigoreng-dua', variable: 'FRONTEND_ENVFILE')]) {
+                        sh '''
+                            mkdir -p frontend
+                            cp "$FRONTEND_ENVFILE" frontend/.env
+                            chmod 600 frontend/.env
+                        '''
+                        }
+                    }
+                }
+
+                stage('Deploy with Docker Compose') {
+                    steps {
+                        echo 'Deploying to production on nasigoreng node using docker compose (using IMAGE_TAG env var)'
+                        sh """
+                            set -e
+                            if command -v docker compose >/dev/null 2>&1; then
+                                # Deploy backend using IMAGE_TAG environment variable
+                                if [ -f backend/compose.yml ]; then
+                                    echo "Deploying backend with IMAGE_TAG=${IMAGE_TAG}"
+                                    IMAGE_TAG=${IMAGE_TAG} docker compose -f backend/compose.yml pull || true
+                                    IMAGE_TAG=${IMAGE_TAG} docker compose -f backend/compose.yml up -d --remove-orphans || true
+                                else
+                                    echo 'backend/compose.yml not found, skipping backend compose'
+                                fi
+
+                                # Deploy frontend using IMAGE_TAG environment variable
+                                if [ -f frontend/compose.yaml ]; then
+                                    echo "Deploying frontend with IMAGE_TAG=${IMAGE_TAG}"
+                                    IMAGE_TAG=${IMAGE_TAG} docker compose -f frontend/compose.yaml pull || true
+                                    IMAGE_TAG=${IMAGE_TAG} docker compose -f frontend/compose.yaml up -d --remove-orphans || true
+                                else
+                                    echo 'frontend/compose.yaml not found, skipping frontend compose'
+                                fi
+                            else
+                                echo 'docker compose not found on nasigoreng; please install or adjust deployment command'
+                                exit 0
+                            fi
+                        """
+                    }
+                }
             }
         }
     }
