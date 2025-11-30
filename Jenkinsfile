@@ -269,8 +269,8 @@ pipeline {
                                 # Deploy backend using IMAGE_TAG environment variable
                                 if [ -f backend/compose.yml ]; then
                                     echo "Deploying backend with IMAGE_TAG=${IMAGE_TAG}"
-                                    IMAGE_TAG=${IMAGE_TAG} docker compose -f backend/compose.yml pull || true
-                                    IMAGE_TAG=${IMAGE_TAG} docker compose -f backend/compose.yml up -d --remove-orphans || true
+                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -f backend/compose.yml pull || true
+                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -f backend/compose.yml up -d --remove-orphans || true
                                 else
                                     echo 'backend/compose.yml not found, skipping backend compose'
                                 fi
@@ -278,8 +278,8 @@ pipeline {
                                 # Deploy frontend using IMAGE_TAG environment variable
                                 if [ -f frontend/compose.yaml ]; then
                                     echo "Deploying frontend with IMAGE_TAG=${IMAGE_TAG}"
-                                    IMAGE_TAG=${IMAGE_TAG} docker compose -f frontend/compose.yaml pull || true
-                                    IMAGE_TAG=${IMAGE_TAG} docker compose -f frontend/compose.yaml up -d --remove-orphans || true
+                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -f frontend/compose.yaml pull || true
+                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -f frontend/compose.yaml up -d --remove-orphans || true
                                 else
                                     echo 'frontend/compose.yaml not found, skipping frontend compose'
                                 fi
