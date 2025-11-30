@@ -5,9 +5,9 @@ def COLOR_MAP = [
 
 pipeline {
     agent none
-    environment {
-        PATH = "/home/jenkins/.local/bin:/home/jenkins/codeql:${env.PATH}"
-    }
+    // environment {
+    //     PATH = "/home/jenkins/.local/bin:/home/jenkins/codeql:${env.PATH}"
+    // }
     options {
         timestamps()
         buildDiscarder(logRotator(numToKeepStr: '10'))
