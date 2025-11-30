@@ -126,14 +126,13 @@ pipeline {
                     def backendImage = "fauzanghaza/brawijaya-devsecops-backend:${env.IMAGE_TAG}"
                     def frontendImage = "fauzanghaza/brawijaya-devsecops-frontend:${env.IMAGE_TAG}"
 
-                    sh """
-                        if [ -n \"$DOCKERHUB_USER\" ] && [ -n \"$DOCKERHUB_PASS\" ]; then
-                            echo 'Logging in to Docker registry'
+                    // Use Jenkins credentials (username/password) for Docker Hub login
+                    withCredentials([usernamePassword(credentialsId: 'nasigoreng', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
+                        sh '''
+                            echo 'Logging in to Docker registry (via credentials)'
                             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-                        else
-                            echo 'DOCKERHUB_USER/DOCKERHUB_PASS not set; attempting to continue (push may fail)'
-                        fi
-                    """
+                        '''
+                    }
 
                     // Build backend image
                     dir('backend') {
