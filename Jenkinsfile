@@ -5,9 +5,9 @@ def COLOR_MAP = [
 
 pipeline {
     agent none
-    // environment {
-    //     PATH = "/home/jenkins/.local/bin:/home/jenkins/codeql:${env.PATH}"
-    // }
+    environment {
+        PATH = "/home/jenkins/.local/bin:/home/jenkins/codeql:${env.PATH}"
+    }
     options {
         timestamps()
         buildDiscarder(logRotator(numToKeepStr: '10'))
@@ -19,7 +19,19 @@ pipeline {
             steps {
                 echo 'Checking out source on builtin node'
                 checkout scm
+                script {
+                    def branch = sh(
+                        script: """
+                            git rev-parse --abbrev-ref HEAD 2>/dev/null || echo HEAD
+                        """,
+                        returnStdout: true
+                    ).trim()
+
+                    env.EFFECTIVE_BRANCH = branch
+                    echo "Detected branch: ${env.EFFECTIVE_BRANCH}"
+                }
             }
+
         }
 
         stage('SAST') {
@@ -193,7 +205,7 @@ pipeline {
                     }
 
 
-                    def branchName = env.BRANCH_NAME
+                    def branchName = env.EFFECTIVE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: 'unknown'
                     if (!branchName) {
                         branchName = env.GIT_BRANCH
                     }
@@ -305,7 +317,7 @@ pipeline {
                     (buildDuration % 60).intValue()
                 )
 
-                def branchName = env.BRANCH_NAME
+                def branchName = env.EFFECTIVE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: 'unknown'
                 if (!branchName) {
                     branchName = env.GIT_BRANCH
                 }
