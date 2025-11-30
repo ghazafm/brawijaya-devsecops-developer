@@ -19,7 +19,9 @@ pipeline {
             steps {
                 echo 'Checking out source on builtin node'
                 checkout scm
-                env.EFFECTIVE_BRANCH = "master"
+                script{
+                    env.EFFECTIVE_BRANCH = "master"
+                }
             }
 
         }
