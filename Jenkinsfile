@@ -240,24 +240,22 @@ pipeline {
         stage('Deploy to Production') {
             agent { label 'nasigoreng' }
             stages {
-
                 stage('Generate environment files') {
                     steps {
                         withCredentials([file(credentialsId: 'nasigoreng-satu', variable: 'BACKEND_ENVFILE')]) {
-                        sh '''
-                            mkdir -p backend
-                            cp "$BACKEND_ENVFILE" backend/.env
-                            chmod 600 backend/.env
-                        '''
+                            sh '''
+                                mkdir -p backend
+                                cp "$BACKEND_ENVFILE" backend/.env
+                                chmod 600 backend/.env
+                            '''
                         }
-                    }
-                    steps {
+
                         withCredentials([file(credentialsId: 'nasigoreng-dua', variable: 'FRONTEND_ENVFILE')]) {
-                        sh '''
-                            mkdir -p frontend
-                            cp "$FRONTEND_ENVFILE" frontend/.env
-                            chmod 600 frontend/.env
-                        '''
+                            sh '''
+                                mkdir -p frontend
+                                cp "$FRONTEND_ENVFILE" frontend/.env
+                                chmod 600 frontend/.env
+                            '''
                         }
                     }
                 }
