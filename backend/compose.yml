@@ -22,16 +22,14 @@ services:
 
   # Go Application
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: "fauzanghaza/brawijaya-devsecops-backend:${IMAGE_TAG:-latest}"
     container_name: task-management-app
     restart: unless-stopped
     environment:
       # Server Config
       SERVER_HOST: 0.0.0.0
       SERVER_PORT: 8080
-      
+
       # Database Config
       DB_HOST: postgres
       DB_PORT: "${DB_PORT:-5432}"
@@ -39,7 +37,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       DB_NAME: ${DB_NAME:-task_management}
       DB_SSLMODE: disable
-      
+
       # JWT Config
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-this-in-production}
       JWT_EXPIRE_HOURS: ${JWT_EXPIRE_HOURS:-24}

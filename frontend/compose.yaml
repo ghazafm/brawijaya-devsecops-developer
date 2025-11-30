@@ -2,11 +2,7 @@ version: '3.8'
 
 services:
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    image: "fauzanghaza/brawijaya-devsecops-frontend:${IMAGE_TAG:-latest}"
     container_name: brawijaya-frontend
     env_file:
       - .env
