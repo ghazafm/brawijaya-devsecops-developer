@@ -150,13 +150,13 @@ pipeline {
                     }
 
 
-                    env.NEXT_PUBLIC_API_URL = "https://backend-secure.fauzanghaza.com/api/v1"
+                    env.NEXT_PUBLIC_API_URL = "https://backend.fauzanghaza.com/api/v1"
 
 
                     dir('frontend') {
                         sh """
                             echo 'Building frontend image: ${frontendImage}'
-                            NEXT_PUBLIC_API_URL="https://backend-secure.fauzanghaza.com/api/v1"
+                            NEXT_PUBLIC_API_URL="https://backend.fauzanghaza.com/api/v1"
                             echo "Using NEXT_PUBLIC_API_URL=\$NEXT_PUBLIC_API_URL"
                             docker build --build-arg NEXT_PUBLIC_API_URL="\$NEXT_PUBLIC_API_URL" \
                             -t ${frontendImage} -f Dockerfile .
