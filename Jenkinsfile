@@ -153,7 +153,26 @@ pipeline {
                     dir('frontend') {
                         sh """
                             echo 'Building frontend image: ${frontendImage}'
-                            docker build -t ${frontendImage} -f Dockerfile .
+                            # Try to read NEXT_PUBLIC_API_URL from frontend/.env (if present)
+                            if [ -f .env ]; then
+                                export NEXT_PUBLIC_API_URL=\$(grep -m1 '^NEXT_PUBLIC_API_URL=' .env | cut -d= -f2-)
+                            fi
+
+                            # If the Jenkins pipeline provides NEXT_PUBLIC_API_URL in environment, prefer it
+                            if [ -n "${env.NEXT_PUBLIC_API_URL}" ]; then
+                                export NEXT_PUBLIC_API_URL="${env.NEXT_PUBLIC_API_URL}"
+                            fi
+
+
+                            echo "Using NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL"
+
+                            # If NEXT_PUBLIC_API_URL is empty or the literal string 'null', override with a sane default
+                            if [ -z "$NEXT_PUBLIC_API_URL" ] || [ "$NEXT_PUBLIC_API_URL" = "null" ]; then
+                                echo 'NEXT_PUBLIC_API_URL empty or null — defaulting to https://app-secure.fauzanghaza.com'
+                                export NEXT_PUBLIC_API_URL="https://app-secure.fauzanghaza.com"
+                            fi
+
+                            docker build --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" -t ${frontendImage} -f Dockerfile .
                         """
                     }
 
@@ -273,8 +292,8 @@ pipeline {
                                 # Deploy backend using IMAGE_TAG environment variable
                                 if [ -f backend/compose.yml ]; then
                                     echo "Deploying backend with IMAGE_TAG=${IMAGE_TAG}"
-                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -f backend/compose.yml pull || true
-                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -f backend/compose.yml up -d --remove-orphans || true
+                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -p nasigoreng-main -f backend/compose.yml pull || true
+                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -p nasigoreng-main -f backend/compose.yml up -d --remove-orphans || true
                                 else
                                     echo 'backend/compose.yml not found, skipping backend compose'
                                 fi
@@ -282,8 +301,8 @@ pipeline {
                                 # Deploy frontend using IMAGE_TAG environment variable
                                 if [ -f frontend/compose.yaml ]; then
                                     echo "Deploying frontend with IMAGE_TAG=${IMAGE_TAG}"
-                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -f frontend/compose.yaml pull || true
-                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -f frontend/compose.yaml up -d --remove-orphans || true
+                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -p nasigoreng-main -f frontend/compose.yaml pull || true
+                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -p nasigoreng-main -f frontend/compose.yaml up -d --remove-orphans || true
                                 else
                                     echo 'frontend/compose.yaml not found, skipping frontend compose'
                                 fi
