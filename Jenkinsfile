@@ -280,7 +280,7 @@ pipeline {
                                 if [ -f backend/compose.yml ]; then
                                     echo "Deploying backend with IMAGE_TAG=${IMAGE_TAG}"
                                     IMAGE_TAG=${IMAGE_TAG} sudo docker compose -p nasigoreng-main -f backend/compose.yml pull || true
-                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -p nasigoreng-main -f backend/compose.yml up -d --remove-orphans || true
+                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -p nasigoreng-main-backend -f backend/compose.yml up -d --remove-orphans
                                 else
                                     echo 'backend/compose.yml not found, skipping backend compose'
                                 fi
@@ -289,7 +289,7 @@ pipeline {
                                 if [ -f frontend/compose.yaml ]; then
                                     echo "Deploying frontend with IMAGE_TAG=${IMAGE_TAG}"
                                     IMAGE_TAG=${IMAGE_TAG} sudo docker compose -p nasigoreng-main -f frontend/compose.yaml pull || true
-                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -p nasigoreng-main -f frontend/compose.yaml up -d --remove-orphans || true
+                                    IMAGE_TAG=${IMAGE_TAG} sudo docker compose -p nasigoreng-main-frontend -f frontend/compose.yaml up -d --remove-orphans
                                 else
                                     echo 'frontend/compose.yaml not found, skipping frontend compose'
                                 fi
